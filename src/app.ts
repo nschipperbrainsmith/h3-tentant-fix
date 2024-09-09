@@ -136,6 +136,12 @@ export function createAppEventHandler(stack: Stack, options: AppOptions) {
   const spacing = options.debug ? 2 : undefined;
 
   return eventHandler(async (event) => {
+    // CHANGE: Moved to the top to make it mutable.
+    // Call onRequest hook
+    if (options.onRequest) {
+      await options.onRequest(event);
+    }
+
     // Keep original incoming url accessible
     event.node.req.originalUrl =
       event.node.req.originalUrl || event.node.req.url || "/";
@@ -145,11 +151,6 @@ export function createAppEventHandler(stack: Stack, options: AppOptions) {
 
     // Layer path is the path without the prefix
     let _layerPath: string;
-
-    // Call onRequest hook
-    if (options.onRequest) {
-      await options.onRequest(event);
-    }
 
     for (const layer of stack) {
       // 1. Remove prefix from path
